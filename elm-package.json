@@ -1,0 +1,15 @@
+{
+    "version": "1.0.0",
+    "summary": "Types and helpers for dealing with the data found in an elm-package.json file",
+    "repository": "https://github.com/lukewestby/package-info.git",
+    "license": "MIT",
+    "source-directories": [
+        "./src"
+    ],
+    "exposed-modules": ["PackageInfo", "PackageInfo.Version", "PackageInfo.VersionRange"],
+    "dependencies": {
+        "NoRedInk/elm-decode-pipeline": "1.1.2 <= v < 2.0.0",
+        "elm-lang/core": "4.0.1 <= v < 5.0.0"
+    },
+    "elm-version": "0.17.0 <= v < 0.18.0"
+}
