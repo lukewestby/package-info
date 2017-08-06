@@ -9,11 +9,16 @@ module PackageInfo
 {-| Types and JSON helpers for loading and manipulating the contents of an
 elm-package.json file
 
+
 # Types
+
 @docs PackageInfo, Dependency
 
+
 # JSON
+
 @docs decoder, encoder
+
 -}
 
 import Json.Decode as Decode exposing (Decoder)
