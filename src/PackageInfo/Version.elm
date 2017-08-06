@@ -11,17 +11,26 @@ module PackageInfo.Version
 {-| A type and functions for managing SemVer version strings found in an
 elm-package.json file
 
+
 # Type
+
 @docs Version
 
+
 # Comparison
+
 @docs compare
 
+
 # Strings
+
 @docs toString, fromString
 
+
 # JSON
+
 @docs decoder, encoder
+
 -}
 
 import String
@@ -42,8 +51,8 @@ type alias Version =
 parseSegment : String -> Maybe String -> Result String Int
 parseSegment versionType =
     Result.fromMaybe ("Missing " ++ versionType ++ " version component")
-        >> (flip Result.andThen) String.toInt
-        >> Result.formatError (always ("Unparseable " ++ versionType ++ " component"))
+        >> Result.andThen String.toInt
+        >> Result.mapError (always ("Unparseable " ++ versionType ++ " component"))
 
 
 {-| Parse a Version from a string X.Y.Z, where X is the major version, Y is the
@@ -65,10 +74,7 @@ fromString input =
         patch =
             split |> List.drop 2 |> List.head |> parseSegment "patch"
     in
-        Ok Version
-            `resultAndMap` major
-            `resultAndMap` minor
-            `resultAndMap` patch
+        resultAndMap (resultAndMap (resultAndMap (Ok Version) major) minor) patch
 
 
 {-| Convert a value of type Version back into a string with the format X.Y.Z
@@ -97,7 +103,19 @@ compare left right =
 -}
 decoder : Decoder Version
 decoder =
-    Decode.customDecoder Decode.string fromString
+    Decode.string
+        |> Decode.map fromString
+        |> Decode.andThen
+            (\result ->
+                case
+                    result
+                of
+                    Ok version ->
+                        Decode.succeed version
+
+                    Err err ->
+                        Decode.fail err
+            )
 
 
 {-| Convert a Version back into a JSON string value

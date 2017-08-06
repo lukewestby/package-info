@@ -12,20 +12,31 @@ module PackageInfo.VersionRange
 {-| A type and functions for managing version range constraint expressions found
 in an elm-package.json file
 
+
 # Type
+
 @docs VersionRange
 
+
 # Creation
+
 @docs enclosing
 
+
 # Comparison
+
 @docs contains
 
+
 # Strings
+
 @docs toString, fromString
 
+
 # JSON
+
 @docs decoder, encoder
+
 -}
 
 import Json.Decode as Decode exposing (Decoder)
@@ -64,8 +75,8 @@ splitRegex =
 parseSegment : String -> Maybe String -> Result String Version
 parseSegment side =
     Result.fromMaybe ("Missing " ++ side ++ " constraint")
-        >> (flip Result.andThen) (Version.fromString)
-        >> Result.formatError (\e -> "Unparseable " ++ side ++ " constraint: " ++ e)
+        >> Result.andThen Version.fromString
+        >> Result.mapError (\e -> "Unparseable " ++ side ++ " constraint: " ++ e)
 
 
 {-| Parse a VersionRange from a string with the format
@@ -83,9 +94,7 @@ fromString input =
         max =
             split |> List.drop 1 |> List.head |> parseSegment "righthand"
     in
-        Ok VersionRange
-            `resultAndMap` min
-            `resultAndMap` max
+        resultAndMap (resultAndMap (Ok VersionRange) min) max
 
 
 {-| Convert an existing VersionRange back into a string with the format
@@ -108,7 +117,19 @@ VersionRange
 -}
 decoder : Decoder VersionRange
 decoder =
-    Decode.customDecoder Decode.string fromString
+    Decode.string
+        |> Decode.map fromString
+        |> Decode.andThen
+            (\result ->
+                case
+                    result
+                of
+                    Ok version ->
+                        Decode.succeed version
+
+                    Err err ->
+                        Decode.fail err
+            )
 
 
 {-| Encode a VersionRange as a JSON string with the format
